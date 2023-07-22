@@ -3,6 +3,7 @@ inputs/
 lib/
 test/
 output/
+.vscode/
 */ref/
 *.csv
 *.xlsx
