@@ -24,7 +24,7 @@ class Importer:
         try:
             with open(self.file_path, 'r') as file:
                 lines = file.readlines()
-            print(f"Instance read: {os.path.basename(self.file_path)}")
+            print(f"Instance: {os.path.basename(self.file_path)}")
             return lines
         except FileNotFoundError:
             print("File not found.")
@@ -36,7 +36,7 @@ class Importer:
 
         :return: A tuple containing Tmax (float), P (int), and a list of Node objects.
         """
-        print("Reading nodes:")
+        print("Reading nodes...")
         node_data: List[Node] = []
         # Extract Tmax and P from the first line
         first_line_data = self.data[0].strip().split()
@@ -48,13 +48,13 @@ class Importer:
 
         # Extract the first
         x, y, score = map(float, self.data[1].strip().split())
-        instance = Node(0, x, y, score, isFirst=True)
+        instance = Node(0, x, y, score, is_start=True)
         node_data.append(instance)
         
         # Extract last node
         N = len(self.data) - 2
         x, y, score = map(float, self.data[2].strip().split())
-        instance = Node(N, x, y, score, isLast=True)
+        instance = Node(N, x, y, score, is_end=True)
         node_data.append(instance)
 
         # Extract data for each node starting from the fourth line
@@ -65,6 +65,8 @@ class Importer:
 
         # Sort by node id
         node_data.sort(key=lambda x: x.id)
+        print(f"Nodes read: {len(node_data)}")
+        print(f"MaxCost={Tmax}")
 
         return Tmax, P, node_data
 
@@ -73,16 +75,17 @@ class Importer:
         Prints the nodes and their scores.
         """
         for node in self.node_data:
-            if node.isFirst:
-                print("First node -> ", end=" ")
-            elif node.isLast:
-                print("Last node: -> ", end=" ")
-            print(f"Node {node.id} (x={node.x}, y={node.y}), Score: {node.score}")
+            if node.is_start:
+                print("Start node -> ", end=" ")
+            elif node.is_end:
+                print("End node: -> ", end=" ")
+            print(f"{node} (x={node.x}, y={node.y}), Score: {node.reward}")
 
 
 if __name__ == "__main__":
     # file_path = "input/ref/set_64_1/set_64_1_15.txt"
-    file_path = "input/ref/Tsiligirides 3/tsiligirides_problem_3_budget_070.txt"
+    # file_path = "input/ref/Tsiligirides 3/tsiligirides_problem_3_budget_070.txt"
     # file_path = "input/ref/set_64_1/set_64_1_15_err_test.txt"
+    file_path = "input/ref/Tsiligirides 1/tsiligirides_problem_1_budget_05 - Copy.txt"
     importer = Importer(file_path)
     importer.print_nodes()
