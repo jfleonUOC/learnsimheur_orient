@@ -43,7 +43,7 @@ def checkMergingConditions(iNode, jNode, iRoute, jRoute, ijArc, routeMaxCost, ve
     # else, merging is feasible
     return True
 
-def merging(nodes, eff_list, routeMaxCost, useBR:bool=True, verbose:bool=False):
+def pj_heuristic(nodes, eff_list, routeMaxCost, useBR:bool=True, verbose:bool=False):
     """ Perform the BR arc-selection & routing-merging iterative process """
     sol = dummy_solution(nodes, routeMaxCost) # compute the dummy solution
     if len(sol.candidate_routes) == 0:
@@ -81,7 +81,7 @@ def merging(nodes, eff_list, routeMaxCost, useBR:bool=True, verbose:bool=False):
             print(f"{arc_i_j =} -> Reward_end={arc_i_j.end.reward}, Cost={arc_i_j.cost}")
             print(f"{route_i =} -> Reward={route_i.reward}, Cost={route_i.cost}")
             print(f"{route_j =} -> Reward={route_j.reward}, Cost={route_j.cost}")
-        print(f"efflist: {len(effList)}")
+        # print(f"efflist: {len(effList)}")
         # check if merge is possible
         isMergeFeasible = checkMergingConditions(node_i, node_j, route_i, route_j, arc_i_j, routeMaxCost, verbose)
         # if all necessary conditions are satisfied, merge and delete arc (j, i)
@@ -141,4 +141,7 @@ if __name__ == "__main__":
     eff_list = EfficiencyList(nodes)
     eff_list.generate(alpha=0.5)
 
-    merged_sol = merging(nodes, eff_list, routeMaxCost, useBR=True, verbose=False)
+    # Run PJ Heuristic
+    merged_sol = pj_heuristic(nodes, eff_list, routeMaxCost, useBR=True, verbose=False)
+    listOfNodes = merged_sol.get_best_route().get_nodes()
+    print(listOfNodes)

@@ -9,9 +9,9 @@ class Solution():
     def __init__(self, id: int = 0) -> None:
         self.id = id
         self.candidate_routes = []
-        self.best_route = None
 
     def get_best_route(self):
+        best_route = None
         if not self.candidate_routes:
             print("No routes available in solution.")
             return None
@@ -19,8 +19,8 @@ class Solution():
         self.candidate_routes.sort(key = operator.attrgetter("cost"), reverse = False)
         self.candidate_routes.sort(key = operator.attrgetter("reward"), reverse = True)
         # self.best_route = max(self.candidate_routes, key=operator.attrgetter("reward"))
-        self.best_route = self.candidate_routes[0]
-        return self.best_route
+        best_route = self.candidate_routes[0]
+        return best_route
 
     def add_route(self, route: Route):
         self.candidate_routes.append(route)

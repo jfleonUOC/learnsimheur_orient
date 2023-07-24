@@ -67,6 +67,13 @@ class Route:
                 return True
         return False
 
+    def get_nodes(self):
+        node_list = []
+        node_list.append(self.arcs[0].start.id)
+        for arc in self.arcs:
+            node_list.append(arc.end.id)
+        return node_list
+
     #TODO: implement check for route: is the sequence of nodes/arcs correct?
 
 # if __name__ == "__main__":
