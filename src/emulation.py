@@ -1,5 +1,6 @@
 from typing import List, Dict, Union
 import math
+import random
 
 from node import Node, euclidean_distance
 from importer import Importer
@@ -55,8 +56,10 @@ class Emulation:
         if self.current_node is not None:
             # Calculate the distance between the current node and the new node
             distance = euclidean_distance(self.current_node, new_node)
-            #TODO: create random generator of conditions x1, x2, x3, x4
-            dynamic_component = dynamic_function(x_1, x_2, x_3, x_4, len(self.path_covered))
+            #TODO: create random generator of dynamic conditions 
+            #TODO: use the info. of the current node to generate the delta!
+            params = dynamic_param()
+            dynamic_component = dynamic_function(params, len(self.path_covered))
             distance += dynamic_component
             # print(f"{distance = }")
 
@@ -74,13 +77,29 @@ class Emulation:
         # Add the new node to the path covered
         self.path_covered.append(self.current_node)
 
-def dynamic_function(x_1, x_2, x_3, x_4, tstep):
-    delta_x_1 = math.sin(tstep*x_1)
-    delta_x_2 = math.sin(tstep*x_2)
-    delta_x_3 = math.sin(tstep*x_3)
-    delta_x_4 = math.sin(tstep*x_4)
-    delta = delta_x_1 + delta_x_2 + delta_x_3 + delta_x_4
-    return delta
+def dynamic_param(param_seed:int=1, n_param:int=4):
+    """
+    Generate dynamic parameters
+    By default consider 4 parameters for the function:
+    1. trafic
+    2. weather
+    3. day of the week
+    4. state of charge
+    (5. driver experience)
+    """
+    params = []
+    random.seed(param_seed)
+    for i in range(n_param):
+        params.append(random.random())
+    return params
+
+def dynamic_function(parameters, tstep, variability:int=1):
+    deltas = []
+    for p in parameters:
+        delta_i = variability*math.sin((tstep*(math.pi)*p))
+        deltas.append(delta_i)
+    delta_total = sum(deltas)
+    return delta_total
 
 if __name__ == "__main__":
     # # Import files
@@ -115,5 +134,10 @@ if __name__ == "__main__":
     #     emulator.step(position)
     #     print(emulator.get_current_state())
 
-    result = dynamic_function(1.57,1.57,1.57,1.57)
-    print(result)
+    # result = dynamic_function(1.57,1.57,1.57,1.57)
+    # print(result)
+    
+    n=1
+    p=0.5
+    A=1
+    print(A*math.sin((n*(math.pi)*p)))
