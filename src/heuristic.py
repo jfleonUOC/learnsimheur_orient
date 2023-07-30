@@ -126,6 +126,25 @@ def pj_heuristic(nodes, eff_list, routeMaxCost, useBR:bool=True, verbose:bool=Fa
 
     return sol
 
+def generate_new_route(emulation) -> Solution:
+    """
+    Given the current status (emulation network, current position, route covered)
+    generate a new route to the end position based on the the selected heuristic
+    (with the PJ's heuristic the new routes are always feasible
+    """
+    #TODO: function to clean up the efficiency list
+    #   - parameter to clean also the inverse arc
+    new_nodes = copy.copy(emulation.nodes) # create a shallow copy of the emulation nodes
+    for visited_node in emulation.path_covered:
+        new_nodes.remove(visited_node) # remove the already visited nodes
+    new_eff_list = EfficiencyList(new_nodes)
+    new_eff_list.generate(alpha=0.5) # calculate a new efficiency list
+    new_max_cost = emulation.get_initial_conditions()["initial_max_cost"] - emulation.static_cost
+    # generate a new solution using the PJ's algrorithm
+    new_solution = pj_heuristic(new_nodes, new_eff_list, new_max_cost)
+
+    return new_solution
+
 
 if __name__ == "__main__":
     # Import files

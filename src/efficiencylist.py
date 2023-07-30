@@ -74,7 +74,7 @@ class EfficiencyList():
 
 
     def tune_alpha(self):
-        #TODO: extract as a function outside class
+        #TODO: extract as a function (outside the EfficiencyList class)
         """
         tune the alpha value for generating enhanced savings
         """

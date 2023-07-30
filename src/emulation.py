@@ -9,7 +9,7 @@ from heuristic import pj_heuristic
 
 
 class Emulation:
-    def __init__(self, nodes: List[Node]):
+    def __init__(self, nodes: List[Node], max_cost:float):
         """
         Represents the Emulation class that takes the network of nodes as input.
 
@@ -17,10 +17,12 @@ class Emulation:
             nodes (List[Node]): List of Node instances.
         """
         self.nodes = nodes
+        self.max_cost = max_cost
         self.current_node: Node = next((node for node in self.nodes if node.id == 0), None)
         self.path_covered: List[Node] = [self.current_node]
         self.current_reward: float = 0.0
         self.current_cost: float = 0.0
+        self.static_cost: float = 0.0
 
     def get_current_state(self) -> Dict:
         """
@@ -33,7 +35,15 @@ class Emulation:
             "current_node": self.current_node,
             "path_covered": self.path_covered,
             "current_reward": self.current_reward,
-            "current_cost": self.current_cost
+            "current_cost": self.current_cost,
+            "static_cost": self.static_cost
+        }
+    
+    def get_initial_conditions(self):
+
+        return {
+            "initial_max_cost": self.max_cost,
+            "num_nodes": len(self.nodes)
         }
 
     def step(self, new_node_id: int) -> None:
@@ -55,16 +65,16 @@ class Emulation:
 
         if self.current_node is not None:
             # Calculate the distance between the current node and the new node
-            distance = euclidean_distance(self.current_node, new_node)
-            #TODO: create random generator of dynamic conditions 
-            #TODO: use the info. of the current node to generate the delta!
+            distance_static = euclidean_distance(self.current_node, new_node)
             params = dynamic_param()
             dynamic_component = dynamic_function(params, len(self.path_covered))
-            distance += dynamic_component
-            # print(f"{distance = }")
+            distance_dynamic = distance_static + dynamic_component
+            print(f"{distance_static = }")
+            print(f"{distance_dynamic = }")
 
             # Update the current cost with the calculated distance
-            self.current_cost += distance
+            self.current_cost += distance_dynamic
+            self.static_cost += distance_static
 
             # Update the current reward with the new node's score
             self.current_reward += new_node.reward
@@ -76,6 +86,8 @@ class Emulation:
 
         # Add the new node to the path covered
         self.path_covered.append(self.current_node)
+    
+    #TODO: verify that the solution is still feasible
 
 def dynamic_param(param_seed:int=1, n_param:int=4):
     """
@@ -94,6 +106,7 @@ def dynamic_param(param_seed:int=1, n_param:int=4):
     return params
 
 def dynamic_function(parameters, tstep, variability:int=1):
+    #TODO: add the start-end nodes as part of the dynamic_function?
     deltas = []
     for p in parameters:
         delta_i = variability*math.sin((tstep*(math.pi)*p))
@@ -102,42 +115,34 @@ def dynamic_function(parameters, tstep, variability:int=1):
     return delta_total
 
 if __name__ == "__main__":
-    # # Import files
-    # # file_path = "input/ref/set_64_1/set_64_1_15.txt"
-    # file_path = "input/ref/Tsiligirides 3/tsiligirides_problem_3_budget_070.txt"
-    # importer = Importer(file_path)
-    # importer.print_nodes()
-    # nodes = importer.node_data
-    # routeMaxCost = importer.Tmax
+    # Import files
+    # file_path = "input/ref/set_64_1/set_64_1_15.txt"
+    file_path = "input/ref/Tsiligirides 3/tsiligirides_problem_3_budget_070.txt"
+    importer = Importer(file_path)
+    importer.print_nodes()
+    nodes = importer.node_data
+    routeMaxCost = importer.Tmax
 
-    # # Generate efficiency list
-    # eff_list = EfficiencyList(nodes)
-    # eff_list.generate(alpha=0.5)
+    # Generate efficiency list
+    eff_list = EfficiencyList(nodes)
+    eff_list.generate(alpha=0.5)
 
-    # # Run PJ Heuristic
-    # merged_sol = pj_heuristic(nodes, eff_list, routeMaxCost, useBR=True, verbose=False)
-    # listOfNodes = merged_sol.get_best_route().get_nodes()
-    # print(listOfNodes)
+    # Run PJ Heuristic
+    merged_sol = pj_heuristic(nodes, eff_list, routeMaxCost, useBR=True, verbose=False)
+    listOfNodes = merged_sol.get_best_route().get_nodes()
+    print(listOfNodes)
 
-    # # Create an instance of the Emulation class
-    # emulator = Emulation(nodes)
+    # Create an instance of the Emulation class
+    emulator = Emulation(nodes)
 
-    # # Get the current state
+    # Get the current state
+    print(emulator.get_current_state())
+
+    # Move to nodes and update the current state
+    # emulator.step(2)
+    # emulator.step(10)
     # print(emulator.get_current_state())
-
-    # # Move to nodes and update the current state
-    # # emulator.step(2)
-    # # emulator.step(10)
-    # # print(emulator.get_current_state())
-    # # print(emulator.get_current_state()["path_covered"])
-    # for position in listOfNodes[1:]:
-    #     emulator.step(position)
-    #     print(emulator.get_current_state())
-
-    # result = dynamic_function(1.57,1.57,1.57,1.57)
-    # print(result)
-    
-    n=1
-    p=0.5
-    A=1
-    print(A*math.sin((n*(math.pi)*p)))
+    # print(emulator.get_current_state()["path_covered"])
+    for position in listOfNodes[1:]:
+        emulator.step(position)
+        print(emulator.get_current_state())
