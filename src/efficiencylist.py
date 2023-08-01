@@ -1,5 +1,6 @@
 import operator
 import numpy as np
+import copy
 
 # from node import euclidean_distance
 from arc import Arc
@@ -67,9 +68,11 @@ class EfficiencyList():
         return
 
     def filter_node(self, node):
-        for arc in self.efficiency_list:
+        eff_list_copy = copy.copy(self.efficiency_list)
+        for arc in eff_list_copy:
             if arc.start == node or arc.end == node:
                 self.efficiency_list.remove(arc)
+                # print(f"removing: {arc}")
         return
 
 

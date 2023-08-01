@@ -33,7 +33,6 @@ class SimLearnHeuristic:
 
     def initialize(self, path):
         importer = Importer(path)
-        importer = Importer(file_path)
         # importer.print_nodes()
         nodes = importer.node_data
         routeMaxCost = importer.Tmax
@@ -52,15 +51,15 @@ class SimLearnHeuristic:
             #TODO: stoping condition outside emulator required: a new step is still feasible?
             remaining_nodes_num = float("inf")
             while remaining_nodes_num > 1:
-                # solution = pj_heuristic(nodes, eff_list, max_cost, useBR=True, verbose=False)
                 solution = generate_new_route(emulator)
-                emulator.step(solution.get_best_route().get_nodes()[1])
-                # Get the current state
-                print(emulator.get_current_state())
-                remaining_nodes_num = len(solution.candidate_routes)
-
+                if solution:
+                    emulator.step(solution.get_best_route().get_nodes()[1])
+                    print(emulator.get_current_state())
+                    remaining_nodes_num = len(solution.candidate_routes)
+                else:
+                    break
+            emulator.step(nodes[-1].id) # perform last step to final node (depot)
             return emulator
-
         else:
             print("Invalid type.")
             return None
@@ -90,7 +89,8 @@ if __name__ == "__main__":
     # best_solution: int = procedure.run_procedure()
     # print("Best Solution:", best_solution)
 
-    file_path = "input/ref/Tsiligirides 1/tsiligirides_problem_1_budget_05 - Copy.txt"
+    # file_path = "input/ref/Tsiligirides 1/tsiligirides_problem_1_budget_05 - Copy.txt"
+    file_path = "input/ref/set_64_1/set_64_1_15.txt"
     procedure = SimLearnHeuristic(budget, emulation_cost, number_of_emulations)
     network, maxCost = procedure.initialize(file_path)
     result = procedure.run_heuristic("basic_pj", network, maxCost)

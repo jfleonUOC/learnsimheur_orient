@@ -48,7 +48,7 @@ def pj_heuristic(nodes, eff_list, routeMaxCost, useBR:bool=True, verbose:bool=Fa
     sol = dummy_solution(nodes, routeMaxCost) # compute the dummy solution
     if len(sol.candidate_routes) == 0:
         print("No candidate routes in dummy solution.")
-        return sol
+        return None
     elif len(sol.candidate_routes) == 1:
         print("Only one solution - no merge is possible")
         return sol
@@ -65,11 +65,10 @@ def pj_heuristic(nodes, eff_list, routeMaxCost, useBR:bool=True, verbose:bool=Fa
         node_j = arc_i_j.end
         # determine the routes associated with each node
         route_i = sol.get_route_by_node(node_i)
-        route_j = sol.get_route_by_node(node_j)
-        #TODO: this filtering is not working correctly. Needs to be done outside loop?
         if route_i is None:
             effList.filter_node(node_i)
             continue
+        route_j = sol.get_route_by_node(node_j)
         if route_j is None:
             effList.filter_node(node_j)
             continue
@@ -126,7 +125,7 @@ def pj_heuristic(nodes, eff_list, routeMaxCost, useBR:bool=True, verbose:bool=Fa
 
     return sol
 
-def generate_new_route(emulation) -> Solution:
+def generate_new_route(emulation, verbose:bool=False) -> Solution:
     """
     Given the current status (emulation network, current position, route covered)
     generate a new route to the end position based on the the selected heuristic
@@ -135,13 +134,16 @@ def generate_new_route(emulation) -> Solution:
     #TODO: function to clean up the efficiency list
     #   - parameter to clean also the inverse arc
     new_nodes = copy.copy(emulation.nodes) # create a shallow copy of the emulation nodes
-    for visited_node in emulation.path_covered:
+    for visited_node in emulation.path_covered[:-1]:
         new_nodes.remove(visited_node) # remove the already visited nodes
     new_eff_list = EfficiencyList(new_nodes)
     new_eff_list.generate(alpha=0.5) # calculate a new efficiency list
     new_max_cost = emulation.get_initial_conditions()["initial_max_cost"] - emulation.static_cost
     # generate a new solution using the PJ's algrorithm
-    new_solution = pj_heuristic(new_nodes, new_eff_list, new_max_cost)
+    emulation.path_covered[-1].is_start = True # make final node in path the starting node
+    if dummy_solution(new_nodes, new_max_cost):
+        new_solution = pj_heuristic(new_nodes, new_eff_list, new_max_cost, useBR=False, verbose=verbose)
+    emulation.path_covered[-1].is_start = False # final node in covered path is not the starting node
 
     return new_solution
 
