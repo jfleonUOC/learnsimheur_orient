@@ -130,10 +130,11 @@ if __name__ == "__main__":
     # Run PJ Heuristic
     merged_sol = pj_heuristic(nodes, eff_list, routeMaxCost, useBR=True, verbose=False)
     listOfNodes = merged_sol.get_best_route().get_nodes()
+    listOfNodes = [0, 23, 27, 3, 26, 14, 5, 2, 12, 16, 15, 20, 19, 4, 13, 6, 22, 32]
     print(listOfNodes)
 
     # Create an instance of the Emulation class
-    emulator = Emulation(nodes)
+    emulator = Emulation(nodes, routeMaxCost)
 
     # Get the current state
     print(emulator.get_current_state())

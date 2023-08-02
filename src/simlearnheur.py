@@ -74,6 +74,7 @@ class SimLearnHeuristic:
         while has_enough_budget(self.total_budget, self.timestep_cost):
             result = self.run_emulation()
             self.solution_pool.append(result)
+            #TODO: use time or resource module to know the timestep_cost of running each solution
             self.total_budget -= self.timestep_cost
 
         best_solution = max(self.solution_pool)
@@ -90,7 +91,8 @@ if __name__ == "__main__":
     # print("Best Solution:", best_solution)
 
     # file_path = "input/ref/Tsiligirides 1/tsiligirides_problem_1_budget_05 - Copy.txt"
-    file_path = "input/ref/set_64_1/set_64_1_15.txt"
+    file_path = "input/ref/Tsiligirides 3/tsiligirides_problem_3_budget_070.txt"
+    # file_path = "input/ref/set_64_1/set_64_1_15.txt"
     procedure = SimLearnHeuristic(budget, emulation_cost, number_of_emulations)
     network, maxCost = procedure.initialize(file_path)
     result = procedure.run_heuristic("basic_pj", network, maxCost)
