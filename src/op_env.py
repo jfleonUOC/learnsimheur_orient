@@ -1,40 +1,56 @@
 import gymnasium as gym
 from gymnasium import spaces
+import numpy as np
+
+from emulation import Emulation
 
 
 class OrienteeringEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"]}
 
-    def __init__(self, render_mode=None):
+    def __init__(self, nodes, max_cost, render_mode=None):
 
-        # Observations are dictionaries with the agent's and the target's location.
-        # Each location is encoded as an element of {0, ..., `size`}^2, i.e. MultiDiscrete([size, size]).
+        # Observations are dictionaries with the list of nodes, current position, path covered and conditions.
+        # There is the possibility of defining a Graph space (TODO)
         self.observation_space = spaces.Dict(
             {
-                "agent": spaces.Box(0,  - 1, shape=(2,), dtype=int),
-                "target": spaces.Box(0,  - 1, shape=(2,), dtype=int),
+                # "nodes": spaces.Sequence(spaces.Box(0, 100, dtype=int)),
+                "nodes": spaces.Sequence(spaces.Discrete(len(nodes))),
+                # "current_pos": spaces.Box(0, 100, dtype=int),
+                "current_pos": spaces.Discrete(len(nodes)),
+                # "path_covered": spaces.Sequence(spaces.Box(0, 100, dtype=int)),
+                "path_covered": spaces.Sequence(spaces.Discrete(len(nodes))),
+                # "conditions": spaces.Tuple(spaces.Box(0, 1, dtype=float32)),
+                "x_1": spaces.Box(0, 1, dtype=float),
+                "x_2": spaces.Box(0, 1, dtype=float),
+                "x_3": spaces.Box(0, 1, dtype=float),
+                "x_4": spaces.Box(0, 1, dtype=float),
             }
         )
 
-        # We have 4 actions, corresponding to "right", "up", "left", "down"
-        self.action_space = spaces.Discrete(4)
-
-        """
-        The following dictionary maps abstract actions from `self.action_space` to
-        the direction we will walk in if that action is taken.
-        I.e. 0 corresponds to "right", 1 to "up" etc.
-        """
+        # We have 2 actions: "pj_heuristic", "greedy"
+        self.action_space = spaces.Discrete(2)
+        # dict to map abstract actions to real actions
         self._action_to_direction = {
-            0: [1, 0],
-            1: [0, 1],
-            2: [-1, 0],
-            3: [0, -1],
+            0: "pj_heuristic",
+            1: "greedy",
         }
+
+        self.emulation = Emulation(nodes, max_cost)
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
 
     def _get_obs(self):
+        obs_dict = {
+            "nodes": ,
+            "current_pos": ,
+            "path_covered": ,
+            "x_1": ,
+            "x_2": ,
+            "x_3": ,
+            "x_4": ,
+        }
         return {"agent": self._agent_location, "target": self._target_location}
 
     def _get_info(self):
@@ -84,6 +100,10 @@ class OrienteeringEnv(gym.Env):
 
         return observation, reward, terminated, False, info 
 
+    """
+    Rendering
+    """
+    #TODO:
     def render(self):
         if self.render_mode == "rgb_array":
             return self._render_frame()
