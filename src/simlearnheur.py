@@ -1,6 +1,6 @@
 from importer import Importer
 from efficiencylist import EfficiencyList
-from emulation import Emulation
+from emulation import Emulation, dynamic_param
 from heuristic import pj_heuristic, generate_new_route
 
 def has_enough_budget(budget: int, timestep_cost: int) -> bool:
@@ -53,6 +53,7 @@ class SimLearnHeuristic:
             while remaining_nodes_num > 1:
                 solution = generate_new_route(emulator)
                 if solution:
+                    emulator.update_parameters(dynamic_param())
                     emulator.step(solution.get_best_route().get_nodes()[1])
                     print(emulator.get_current_state())
                     remaining_nodes_num = len(solution.candidate_routes)

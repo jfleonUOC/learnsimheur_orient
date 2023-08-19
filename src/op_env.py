@@ -2,7 +2,8 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 
-from emulation import Emulation
+from emulation import Emulation, dynamic_param
+from heuristic import pj_heuristic, generate_new_route, find_max_reward_node
 
 
 class OrienteeringEnv(gym.Env):
@@ -31,7 +32,7 @@ class OrienteeringEnv(gym.Env):
         # We have 2 actions: "pj_heuristic", "greedy"
         self.action_space = spaces.Discrete(2)
         # dict to map abstract actions to real actions
-        self._action_to_direction = {
+        self._action_to_heuristic = {
             0: "pj_heuristic",
             1: "greedy",
         }
@@ -42,37 +43,34 @@ class OrienteeringEnv(gym.Env):
         self.render_mode = render_mode
 
     def _get_obs(self):
+        """
+        Funtion to return a dictionary with the environment observations
+        - nodes: the available nodes (all minus the covered path)
+        - current position (only id - integer)
+        - path covered
+        - dynamic conditions (x1, x2...)
+        """
         obs_dict = {
-            "nodes": ,
-            "current_pos": ,
-            "path_covered": ,
-            "x_1": ,
-            "x_2": ,
-            "x_3": ,
-            "x_4": ,
+            "nodes": [x.id for x in self.emulation.nodes if x not in self.emulation.path_covered],
+            "current_pos": self.emulation.current_node.id,
+            "path_covered": [x.id for x in self.emulation.path_covered],
+            "x_1": self.emulation.parameters[0],
+            "x_2": self.emulation.parameters[1],
+            "x_3": self.emulation.parameters[2],
+            "x_4": self.emulation.parameters[3],
         }
-        return {"agent": self._agent_location, "target": self._target_location}
+        return obs_dict
 
     def _get_info(self):
         return {
-            "distance": np.linalg.norm(
-                self._agent_location - self._target_location, ord=1
-            )
+            "step_number": len(self.emulation.path_covered)
         }
 
     def reset(self, seed=None, options=None):
         # We need the following line to seed self.np_random
         super().reset(seed=seed)
 
-        # Choose the agent's location uniformly at random
-        self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
-
-        # We will sample the target's location randomly until it does not coincide with the agent's location
-        self._target_location = self._agent_location
-        while np.array_equal(self._target_location, self._agent_location):
-            self._target_location = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
+        self.emulation.reset_emulator()
 
         observation = self._get_obs()
         info = self._get_info()
@@ -83,15 +81,27 @@ class OrienteeringEnv(gym.Env):
         return observation, info
 
     def step(self, action):
-        # Map the action (element of {0,1,2,3}) to the direction we walk in
-        direction = self._action_to_direction[action]
-        # We use `np.clip` to make sure we don't leave the grid
-        self._agent_location = np.clip(
-            self._agent_location + direction, 0, self.size - 1
-        )
-        # An episode is done iff the agent has reached the target
+        # Map the action (element of {0,1}) to the type of heuristic 
+        heuristic = self._action_to_heuristic[action]
+        if heuristic == "pj_heuristic":
+            # run the pj heuristic and select the best option
+            self.emulation.update_parameters(dynamic_param())
+            solution = generate_new_route(self.emulation)
+            next_node = solution.get_best_route().get_nodes()[1]
+        elif heuristic == "greedy":
+            # find the next node with the maximum (local) reward
+            next_node = find_max_reward_node(self.emulation)
+        self.emulation.step(next_node.id)
+
+        # An episode is done (terminated) if the vehicles arrives to the final node
+        # No truncated situation (always valued as False)
+        # if 
         terminated = np.array_equal(self._agent_location, self._target_location)
+        
+        #TODO: Reward every step based on the partial increase in score?
+        #TODO: Reward at the end based on the total score achieved?
         reward = 1 if terminated else 0  # Binary sparse rewards
+
         observation = self._get_obs()
         info = self._get_info()
 

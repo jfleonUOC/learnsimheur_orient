@@ -3,6 +3,7 @@ import random
 import copy
 import operator
 
+from node import euclidean_distance
 from efficiencylist import EfficiencyList
 from solution import Solution, dummy_solution
 from importer import Importer
@@ -129,7 +130,7 @@ def generate_new_route(emulation, verbose:bool=False) -> Solution:
     """
     Given the current status (emulation network, current position, route covered)
     generate a new route to the end position based on the the selected heuristic
-    (with the PJ's heuristic the new routes are always feasible
+    (with the PJ's heuristic the new routes are always feasible)
     """
     #TODO: function to clean up the efficiency list
     #   - parameter to clean also the inverse arc
@@ -146,6 +147,50 @@ def generate_new_route(emulation, verbose:bool=False) -> Solution:
     emulation.path_covered[-1].is_start = False # final node in covered path is not the starting node
 
     return new_solution
+
+def find_max_reward_node(emulation):
+    """
+    Function to find the node with the max reward for a given emulation (with its current status)
+    TODO: change to max efficiency node (balance between reward and distance)
+    TODO: add a control to make the route feasible and to end the route if not feasible
+    """
+    candidate_nodes = list(set(emulation.nodes).difference(emulation.path_covered))
+    max_reward = 0
+    dist_cost = float("inf")
+    for node in candidate_nodes:
+        if node.reward > max_reward:
+            max_reward = node.reward
+            max_reward_node = node
+            dist_cost = euclidean_distance(emulation.current_node, node)
+        elif node.reward == max_reward:
+            new_cost_dist = euclidean_distance(emulation.current_node, node)
+            if new_cost_dist < dist_cost:
+                max_reward = node.reward
+                max_reward_node = node
+                dist_cost = new_cost_dist
+    return max_reward_node
+
+def find_max_eff_node(emulation):
+    """
+    Function to find the node with the max efficiency for a given emulation (with its current status)
+    TODO: change to max efficiency node (balance between reward and distance)
+    TODO: add a control to make the route feasible and to end the route if not feasible
+    """
+    candidate_nodes = list(set(emulation.nodes).difference(emulation.path_covered))
+    max_reward = 0
+    dist_cost = float("inf")
+    for node in candidate_nodes:
+        if node.reward > max_reward:
+            max_reward = node.reward
+            max_reward_node = node
+            dist_cost = euclidean_distance(emulation.current_node, node)
+        elif node.reward == max_reward:
+            new_cost_dist = euclidean_distance(emulation.current_node, node)
+            if new_cost_dist < dist_cost:
+                max_reward = node.reward
+                max_reward_node = node
+                dist_cost = new_cost_dist
+    return max_reward_node
 
 
 if __name__ == "__main__":

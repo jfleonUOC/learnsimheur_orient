@@ -23,6 +23,19 @@ class Emulation:
         self.current_reward: float = 0.0
         self.current_cost: float = 0.0
         self.static_cost: float = 0.0
+        self.parameters: List[float] = []
+
+    def reset_emulator(self):
+        """
+        Function to reset the emulator
+        """
+        self.current_node = next((node for node in self.nodes if node.id == 0), None)
+        self.path_covered = [self.current_node]
+        self.current_reward = 0.0
+        self.current_cost = 0.0
+        self.static_cost = 0.0
+        self.parameters = []
+
 
     def get_current_state(self) -> Dict:
         """
@@ -45,6 +58,10 @@ class Emulation:
             "initial_max_cost": self.max_cost,
             "num_nodes": len(self.nodes)
         }
+    
+    def update_parameters(self, params):
+        self.parameters = params
+        return 
 
     def step(self, new_node_id: int) -> None:
         """
@@ -66,8 +83,8 @@ class Emulation:
         if self.current_node is not None:
             # Calculate the distance between the current node and the new node
             distance_static = euclidean_distance(self.current_node, new_node)
-            params = dynamic_param()
-            dynamic_component = dynamic_function(params, len(self.path_covered))
+            # params = dynamic_param()
+            dynamic_component = dynamic_function(self.parameters, len(self.path_covered))
             distance_dynamic = distance_static + dynamic_component
             print(f"{distance_static = }")
             print(f"{distance_dynamic = }")
@@ -145,5 +162,6 @@ if __name__ == "__main__":
     # print(emulator.get_current_state())
     # print(emulator.get_current_state()["path_covered"])
     for position in listOfNodes[1:]:
+        emulator.update_parameters(dynamic_param())
         emulator.step(position)
         print(emulator.get_current_state())
